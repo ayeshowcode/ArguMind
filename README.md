@@ -49,4 +49,4 @@ CORS allows `http://localhost:3000` (e.g. for a local frontend on port 3000).
 
 ### Dependencies
 
-See `backend/requirements.txt` (FastAPI, Uvicorn, OpenAI, python-dotenv, LangGraph / LangChain packages for future use, Pydantic).
+See `backend/requirements.txt` (FastAPI, Uvicorn, OpenAI, python-dotenv, LangGraph / LangChain packages for future use, Pyda
