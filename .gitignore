@@ -1,2 +1,4 @@
 docs/implementationPlan.md
 .env
+__pycache__/
+*.pyc
