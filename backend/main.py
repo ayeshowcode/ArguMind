@@ -5,14 +5,25 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 
+from agents.models import DebateTopic, DebateTranscript
+
 load_dotenv()
 
 app = FastAPI()
 
+_debate_graph = None
+
+
+def _get_debate_graph():
+    global _debate_graph
+    if _debate_graph is None:
+        from orchestrator.debate_graph import build_debate_graph
+        _debate_graph = build_debate_graph()
+    return _debate_graph
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -41,3 +52,19 @@ def test_agent():
         raise HTTPException(status_code=502, detail=str(e)) from e
     text = completion.choices[0].message.content
     return {"response": text}
+
+
+@app.post("/debate", response_model=DebateTranscript)
+async def debate(body: DebateTopic) -> DebateTranscript:
+    graph = _get_debate_graph()
+    initial_state = {
+        "topic": body.topic,
+        "rounds": body.rounds,
+        "messages": [],
+        "current_round": 0,
+    }
+    try:
+        final_state = graph.invoke(initial_state)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e)) from e
+    return DebateTranscript(topic=body.topic, messages=final_state["messages"])
