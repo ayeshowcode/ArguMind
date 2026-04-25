@@ -62,6 +62,8 @@ async def debate(body: DebateTopic) -> DebateTranscript:
         "rounds": body.rounds,
         "messages": [],
         "current_round": 0,
+        "turn_order": [],
+        "current_turn_idx": 0,
     }
     try:
         final_state = graph.invoke(initial_state)

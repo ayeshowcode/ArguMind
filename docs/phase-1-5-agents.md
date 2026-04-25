@@ -332,5 +332,6 @@ A scoring Judge that returns a winner introduces a false binary verdict into wha
 | 3 | Analyst | `agents/analyst.py` | ✅ Done | `analyse(messages, topic)` |
 | 4 | Fact-checker | `agents/fact_checker.py` | ✅ Done | `audit(messages, topic)` |
 | 5 | Debate graph + API + tests | `orchestrator/debate_graph.py`, `main.py`, `tests/` | ✅ Done | `build_debate_graph()` |
+| 7 | Patterns (turn-order strategies) | `patterns/base_pattern.py`, `round_robin.py`, `socratic.py` | ✅ Done | `get_turn_order(round_num, agents)` |
 
-All four agents inherit from `BaseAgent` in `agents/base.py`. The full system is wired together in Phase 5 via `orchestrator/debate_graph.py`.
+All four agents inherit from `BaseAgent` in `agents/base.py`. The full system is wired together in Phase 5 via `orchestrator/debate_graph.py`. Phase 7 refactored the graph's internal node structure — see [phase-7-patterns.md](./phase-7-patterns.md) for the updated execution flow.
