@@ -1,4 +1,11 @@
 docs/implementationPlan.md
 .env
+.env.local
 __pycache__/
 *.pyc
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo

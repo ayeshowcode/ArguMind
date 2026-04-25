@@ -6,7 +6,9 @@ Briefing for teammates picking up the frontend. Use this alongside [phases-1-5-a
 
 ## 1. What changed in Phase 6 (one sentence)
 
-We built a single-file, no-build React frontend (`frontend/index.html`) with a neo-brutalist design that lets a user enter a topic, configure rounds, watch 4 agents debate in real time, and receive a full fact-checked transcript.
+We built the ArguMind UI as a **Next.js 15 + React 18 + TypeScript** app with a neo-brutalist design that lets a user enter a topic, configure rounds, watch 4 agents debate, and receive a full fact-checked transcript.
+
+> **Migration note:** The frontend was originally a single `index.html` using CDN React + Babel. It has been fully migrated to a proper Next.js project. The `index.html` file is kept in the directory as a legacy reference only.
 
 ---
 
@@ -14,35 +16,95 @@ We built a single-file, no-build React frontend (`frontend/index.html`) with a n
 
 | Term | Meaning |
 |------|---------|
-| **CDN React** | React 18 + ReactDOM loaded directly from `unpkg.com` via `<script>` tags. No Node, no npm, no build step. Open the file in a browser and it works. |
-| **`@babel/standalone`** | A browser-side Babel build. It compiles the `<script type="text/babel">` block at runtime, so you can write JSX without a bundler. |
+| **Next.js App Router** | The `src/app/` directory structure introduced in Next.js 13. Each file in `app/` maps to a route; `layout.tsx` wraps all pages; `page.tsx` is the route's content. |
+| **`'use client'`** | A Next.js directive placed at the top of any component file that uses React hooks, event handlers, or browser APIs. Without it, the component runs as a Server Component (no interactivity). Every interactive component in this project carries it. |
+| **Server Component** | A React component that renders on the server and sends HTML to the browser. Used here only for purely static components (`BrainIcon`, `Footer`, `PromptDebateShip`, `HowWeDoIt`) that have no state or event handlers. |
+| **`NEXT_PUBLIC_BACKEND_URL`** | Environment variable for the API base URL. Defaults to `http://localhost:8000` if not set. Prefix `NEXT_PUBLIC_` is required by Next.js to expose a variable to client-side code. |
 | **Neo-brutalist** | A design style: thick black borders, hard offset box-shadows (`8px 8px 0 0 #111`), flat vibrant fill colors, and `Bangers` (a free Google Font) for all headings. Nothing is rounded or soft. |
 | **`BrutalButton`** | The shared button primitive. Simulates a physical key press via `onMouseDown/Up/Enter/Leave` handlers that shift `transform` and `boxShadow`. Three variants: `primary` (cyan), `secondary` (cream), `danger` (navy). |
 | **`AgentBadge`** | A colored pill that renders an agent role name (PROPONENT, CRITIC, ANALYST, FACT-CHECKER) with its brand color. Used in every `MessageCard`. |
 | **`MessageCard`** | One agent turn rendered as a bordered card with a colored left strip. Fades in via CSS `opacity` transition when `visible` is true. |
 | **`BriefTerminal`** | The 3-step wizard modal that collects topic and rounds before a debate starts. Rendered over the landing page as a fixed overlay. |
-| **`DebateView`** | The page that fires `POST /debate`, shows `LoadingView` while waiting, then renders `DebateStream` + `SummaryCard` when the response arrives. |
+| **`DebateView`** | The component that fires `POST /debate`, shows `LoadingView` while waiting, then renders `DebateStream` + `SummaryCard` when the response arrives. |
 | **`LoadingView`** | Cycling pipeline indicator shown during the API call. Highlights each of the 4 agent labels in sequence every 2.5 s to suggest progress. |
-| **`DebateStream`** | Renders all `AgentMessage` objects grouped by round, revealing cards one at a time (600 ms apart) for a streaming effect. |
+| **`DebateStream`** | Renders all `Message` objects grouped by round, revealing cards one at a time (600 ms apart) for a streaming effect. |
 | **`SummaryCard`** | Appears at the bottom of the debate view. Shows total messages, max round, agent count, the Fact-Checker's final audit, and a "Copy Transcript" button. |
 | **`StatsBar`** | Animated count-up section on the landing page. Numbers animate from 0 to their target over 800 ms when the section scrolls into view (`IntersectionObserver`). |
 | **`Ticker`** | Dual marquee strip. Top row: 7 clickable quick-topic buttons that pre-fill the wizard. Bottom row: keyword scroll (ACCURACY · ANALYSIS · …). |
-| **Page router** | `App` holds a `page` state (`'landing'` or `'debate'`). There is no URL routing — navigation is a single `setState` call. |
-| **`BACKEND` constant** | Hard-coded to `'http://localhost:8000'` at the top of the script. Change this one string if you move the API to a different host or port. |
+| **Page state router** | `page.tsx` holds a `page` state (`'landing'` or `'debate'`). There is no URL routing — navigation is a single `setState` call. |
 
 ---
 
-## 3. File
+## 3. File structure
 
-| File | Purpose |
-|------|---------|
-| `frontend/index.html` | The entire frontend — HTML shell, inline CSS, CDN script tags, and all React components in a single `<script type="text/babel">` block. |
-
-There is intentionally only one file. No `package.json`, no `node_modules`, no bundler config.
+```
+frontend/
+├── package.json                        Next.js 15, React 18, TypeScript
+├── tsconfig.json
+├── next.config.ts
+├── index.html                          Legacy CDN version (reference only)
+└── src/
+    ├── app/
+    │   ├── layout.tsx                  Root layout: metadata, Google Fonts <link>
+    │   ├── page.tsx                    App root — holds page/debate state
+    │   └── globals.css                 CSS animations, scrollbar, box-model reset
+    ├── types/
+    │   └── debate.ts                   AgentRole, Message, DebateResult, DebateParams
+    └── components/
+        ├── ui/
+        │   ├── BrainIcon.tsx           3×3 grid logo icon
+        │   ├── BrutalButton.tsx        Shared button with press animation
+        │   ├── AgentBadge.tsx          Role-colored pill label
+        │   ├── MessageCard.tsx         Single agent turn card
+        │   └── AppHeader.tsx           Sticky nav bar
+        ├── landing/
+        │   ├── LandingPage.tsx         Landing root — manages wizard open state
+        │   ├── HeroSection.tsx         Navy hero box + comic burst graphics
+        │   ├── Ticker.tsx              Dual animated marquee strip
+        │   ├── PromptDebateShip.tsx    "ARGUE. ANALYSE. VERIFY." section
+        │   ├── HowWeDoIt.tsx           4-step pipeline cards
+        │   ├── StatsBar.tsx            Animated count-up stats
+        │   ├── LaunchSection.tsx       CTA banner
+        │   ├── AgentRoster.tsx         4 agent profile cards
+        │   └── Footer.tsx              Brand footer
+        ├── wizard/
+        │   └── BriefTerminal.tsx       3-step modal wizard (steps inlined)
+        └── debate/
+            ├── LoadingView.tsx         Pipeline indicator during fetch
+            ├── DebateStream.tsx        Timed message reveal by round
+            ├── SummaryCard.tsx         Stats + audit + copy transcript
+            └── DebateView.tsx          Fetch orchestrator, renders loading/error/success
+```
 
 ---
 
-## 4. Design tokens
+## 4. TypeScript types
+
+All debate data shapes live in `src/types/debate.ts`:
+
+```ts
+type AgentRole = 'proponent' | 'critic' | 'analyst' | 'fact_checker';
+
+interface Message {
+  role: AgentRole;
+  round: number;
+  content: string;
+}
+
+interface DebateResult {
+  topic: string;
+  messages: Message[];
+}
+
+interface DebateParams {
+  topic: string;
+  rounds: number;
+}
+```
+
+---
+
+## 5. Design tokens
 
 | Token | Value | Used for |
 |-------|-------|---------|
@@ -55,12 +117,14 @@ There is intentionally only one file. No `package.json`, no `node_modules`, no b
 
 Every border is `4px solid #111`. Every hard shadow is `8px 8px 0 0 #111` (elevated) or `12px 12px 0 0 #111` (on hover). No border-radius except the pulsing live-indicator dot.
 
+Animations (`pulse`, `marquee`, `marqueeRev`) live in `src/app/globals.css` and are referenced as string values in inline `style` props.
+
 ---
 
-## 5. Component tree
+## 6. Component tree
 
 ```
-App
+page.tsx  (App root)
 ├── AppHeader          (sticky, shows "← NEW DEBATE" button when on debate page)
 ├── LandingPage        (page === 'landing')
 │   ├── HeroSection    (navy rotated card, comic bursts, two CTA buttons)
@@ -84,7 +148,7 @@ App
 
 ---
 
-## 6. Two-page flow
+## 7. Two-page flow
 
 ```
 Landing
@@ -104,7 +168,7 @@ The Ticker also opens the wizard pre-filled: clicking a quick-topic button calls
 
 ---
 
-## 7. Wizard steps in detail
+## 8. Wizard steps in detail
 
 | Step | Component | What the user does | Validation |
 |------|-----------|--------------------|-----------|
@@ -116,7 +180,7 @@ Progress bar: 3 cyan fill segments, each fills as `step >= n`.
 
 ---
 
-## 8. API integration
+## 9. API integration
 
 ```
 POST http://localhost:8000/debate
@@ -127,15 +191,21 @@ Content-Type: application/json
 
 `DebateView` sends this inside a `useEffect` that fires once on mount. It sets `cancelled = true` in the cleanup function to prevent state updates after unmount (e.g. if the user navigates back during the fetch).
 
-On **success** (`res.ok`): stores the `DebateTranscript` JSON in `transcript`, sets `status = 'success'`.
-On **HTTP error**: reads `res.text()` and surfaces the exact server message in the error card.
+On **success** (`res.ok`): stores the `DebateResult` JSON in `transcript`, sets `status = 'success'`.  
+On **HTTP error**: reads `res.text()` and surfaces the exact server message in the error card.  
 On **network error**: catches the thrown `Error` and shows it.
 
-The backend must be running at `http://localhost:8000` with CORS `allow_origins=["*"]` (no credentials). The frontend is opened as a `file://` URL — browsers send `Origin: null` for file pages, so the wildcard is required.
+The backend URL defaults to `http://localhost:8000`. Override it by creating `frontend/.env.local`:
+
+```
+NEXT_PUBLIC_BACKEND_URL=http://your-host:8000
+```
+
+The backend must have CORS `allow_origins=["*"]`. Unlike the old `file://` version, Next.js dev serves on `http://localhost:3000` so the browser sends a real `Origin` header — a wildcard or explicit `http://localhost:3000` in `allow_origins` is required.
 
 ---
 
-## 9. Debate stream reveal
+## 10. Debate stream reveal
 
 `DebateStream` uses `setInterval` (600 ms) to increment `visibleCount` from 0 to `messages.length`. Each `MessageCard` receives `visible = globalIdx < visibleCount`. When `visible` is false the card's `opacity` is `0`; when true it transitions to `1` over 400 ms.
 
@@ -143,7 +213,7 @@ Messages are grouped by `round` number. Round 0 is labelled `OPENING STATEMENT`;
 
 ---
 
-## 10. Transcript copy format
+## 11. Transcript copy format
 
 Clicking "COPY TRANSCRIPT" in `SummaryCard` writes a plain-text block to the clipboard:
 
@@ -167,19 +237,30 @@ Date: <locale date>
 
 ---
 
-## 11. Run path
+## 12. Run path
 
-1. Start the backend: `cd backend && uvicorn main:app --reload --port 8000`
-2. Confirm it is up: `curl http://localhost:8000/health` → `{"status":"ok"}`
-3. Open `frontend/index.html` directly in your browser (double-click it, or `File → Open`).
-4. The page loads from `file://`. No local server is needed for the frontend.
-5. Click any CTA → complete the 3-step wizard → watch the debate run.
+```bash
+# 1. Start the backend
+cd backend && uvicorn main:app --reload --port 8000
 
-If the browser shows a CORS error, check that the backend middleware has `allow_origins=["*"]` and **no** `allow_credentials=True`.
+# 2. Confirm it is up
+curl http://localhost:8000/health   # → {"status":"ok"}
+
+# 3. Install frontend deps (first time only)
+cd frontend && npm install
+
+# 4. Start the dev server
+npm run dev                         # → http://localhost:3000
+
+# 5. Production build (optional)
+npm run build && npm start          # → http://localhost:3000
+```
+
+Node.js 18+ is required. There is no `file://` option anymore — the app must be served by Next.js.
 
 ---
 
-## 12. Quick-reference: agent brand colors
+## 13. Quick-reference: agent brand colors
 
 | Agent | Badge background | Badge text | Left strip in MessageCard |
 |-------|-----------------|------------|--------------------------|
@@ -190,6 +271,17 @@ If the browser shows a CORS error, check that the backend middleware has `allow_
 
 ---
 
-## 13. Analogy that usually lands
+## 14. What stayed the same vs. what changed
 
-The entire frontend is like a **single printed flyer** — everything is self-contained, you can hand it to anyone and they can read it without needing a printer driver or a build system. React and Babel arrive via CDN the same way a font or image would. The page talks to the backend over `fetch`, which is the one wire connecting the flyer to the live debate engine.
+| Aspect | Before (CDN React) | After (Next.js) |
+|--------|-------------------|-----------------|
+| Visual design | Neo-brutalist, all inline styles | Identical — no visual changes |
+| Component structure | All in one `<script>` block | Same tree, split into 23 `.tsx` files |
+| State management | `React.useState` / `React.useEffect` | Same hooks, proper imports |
+| API call | `fetch` in `useEffect` | Identical |
+| Font loading | Google Fonts `<link>` in `<head>` | Same `<link>` in `layout.tsx` |
+| Animations | Inline `<style>` block | Moved to `globals.css` |
+| Build step | None (Babel in browser) | `npm run build` |
+| Serving | `file://` double-click | `npm run dev` → `localhost:3000` |
+| Backend URL | Hard-coded constant | `NEXT_PUBLIC_BACKEND_URL` env var |
+| TypeScript | None (plain JS) | Full strict TypeScript |
