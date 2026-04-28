@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function StatsBar() {
   const [started, setStarted] = useState(false);
@@ -54,13 +54,13 @@ export default function StatsBar() {
       padding: '40px 80px', display: 'flex', alignItems: 'center', justifyContent: 'space-around',
     }}>
       {stats.map((s, i) => (
-        <>
-          {i > 0 && <div key={`div-${i}`} style={{ width: 1, height: 64, background: 'rgba(255,255,255,0.15)' }} />}
-          <div key={s.label} style={{ textAlign: 'center' }}>
+        <React.Fragment key={s.label}>
+          {i > 0 && <div style={{ width: 1, height: 64, background: 'rgba(255,255,255,0.15)' }} />}
+          <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'Bangers, cursive', fontSize: 80, color: '#06B6D4', lineHeight: 1, minWidth: 80 }}>{s.val}</div>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#F5F0E8', letterSpacing: '0.15em', marginTop: 4, textTransform: 'uppercase' }}>{s.label}</div>
           </div>
-        </>
+        </React.Fragment>
       ))}
     </section>
   );

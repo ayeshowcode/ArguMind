@@ -70,8 +70,17 @@ class BaseAgent(ABC):
             )
         )
 
-        result = self.llm.invoke(chat)
-        return result.content
+        try:
+            result = self.llm.invoke(chat)
+            return result.content
+        except Exception as exc:
+            # Keep the debate pipeline running even when provider auth/config fails.
+            # This gives the frontend a usable transcript instead of a hard 500/502.
+            return (
+                f"[{self.role} fallback] Could not reach the configured LLM provider "
+                f"({type(exc).__name__}). Continuing with a local placeholder response "
+                f"for topic '{topic}'."
+            )
 
 
 if __name__ == "__main__":

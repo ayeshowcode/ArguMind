@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -7,7 +8,7 @@ from openai import OpenAI
 
 from agents.models import DebateTopic, DebateTranscript
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=True)
 
 app = FastAPI()
 

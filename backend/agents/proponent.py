@@ -27,8 +27,15 @@ class ProponentAgent(BaseAgent):
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=f"Make the strongest possible opening argument FOR: {topic}"),
         ]
-        result = self.llm.invoke(chat)
-        return result.content
+        try:
+            result = self.llm.invoke(chat)
+            return result.content
+        except Exception as exc:
+            return (
+                f"[{self.role} fallback] Could not reach the configured LLM provider "
+                f"({type(exc).__name__}). Continuing with a local placeholder opening "
+                f"for topic '{topic}'."
+            )
 
 
 if __name__ == "__main__":
