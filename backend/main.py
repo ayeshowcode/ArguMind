@@ -12,16 +12,6 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=True)
 
 app = FastAPI()
 
-_debate_graph = None
-
-
-def _get_debate_graph():
-    global _debate_graph
-    if _debate_graph is None:
-        from orchestrator.debate_graph import build_debate_graph
-        _debate_graph = build_debate_graph()
-    return _debate_graph
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -57,17 +47,16 @@ def test_agent():
 
 @app.post("/debate", response_model=DebateTranscript)
 async def debate(body: DebateTopic) -> DebateTranscript:
-    graph = _get_debate_graph()
-    initial_state = {
-        "topic": body.topic,
-        "rounds": body.rounds,
-        "messages": [],
-        "current_round": 0,
-        "turn_order": [],
-        "current_turn_idx": 0,
-    }
+    from orchestrator.graph import run_debate
     try:
-        final_state = graph.invoke(initial_state)
+        final_state = run_debate(body.topic, body.rounds)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e)) from e
-    return DebateTranscript(topic=body.topic, messages=final_state["messages"])
+    from agents.models import AgentMessage
+    messages = [AgentMessage(**m) for m in final_state["transcript"]]
+    judgment = {
+        "votes": final_state.get("votes", {}),
+        "winner": final_state.get("winner", ""),
+        "verdict": final_state.get("verdict", ""),
+    }
+    return DebateTranscript(topic=body.topic, messages=messages, judgment=judgment)

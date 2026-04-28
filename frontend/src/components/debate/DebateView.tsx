@@ -64,7 +64,7 @@ export default function DebateView({ topic, rounds, onBack }: DebateViewProps) {
   return (
     <div style={{ background: '#F5F0E8', minHeight: '100vh' }}>
       <DebateStream messages={transcript!.messages} topic={transcript!.topic} />
-      <SummaryCard messages={transcript!.messages} topic={transcript!.topic} onNewDebate={onBack} />
+      <SummaryCard messages={transcript!.messages} topic={transcript!.topic} judgment={transcript!.judgment} onNewDebate={onBack} />
     </div>
   );
 }

@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import BrutalButton from '@/components/ui/BrutalButton';
-import { Message } from '@/types/debate';
+import { Message, Judgment } from '@/types/debate';
 
 interface SummaryCardProps {
   messages: Message[];
   topic: string;
+  judgment: Judgment | null;
   onNewDebate: () => void;
 }
 
-export default function SummaryCard({ messages, topic, onNewDebate }: SummaryCardProps) {
+export default function SummaryCard({ messages, topic, judgment, onNewDebate }: SummaryCardProps) {
   const [copied, setCopied] = useState(false);
 
   const fcMsg = messages.filter(m => m.role === 'fact_checker').slice(-1)[0];
@@ -63,6 +64,48 @@ export default function SummaryCard({ messages, topic, onNewDebate }: SummaryCar
             FACT-CHECKER FINAL AUDIT
           </div>
           <div style={{ fontSize: 14, color: '#F5F0E8', lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{fcMsg.content}</div>
+        </div>
+      )}
+
+      {judgment && (
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'Bangers, cursive', fontSize: 24, color: '#06B6D4', marginBottom: 16, letterSpacing: '0.1em' }}>
+            JUDGE&apos;S VERDICT
+          </div>
+
+          <div style={{
+            background: 'rgba(6,182,212,0.12)', border: '4px solid #06B6D4',
+            padding: '18px 20px', marginBottom: 16,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 6 }}>
+              WINNER
+            </div>
+            <div style={{ fontFamily: 'Bangers, cursive', fontSize: 28, color: '#fff', textTransform: 'uppercase' }}>
+              {judgment.winner || '—'}
+            </div>
+            {judgment.verdict && (
+              <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.85)', marginTop: 10, lineHeight: 1.65, fontStyle: 'italic' }}>
+                &ldquo;{judgment.verdict}&rdquo;
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+            {(['accuracy', 'balance', 'depth', 'reasoning_quality'] as const).map(key => (
+              <div key={key} style={{
+                background: '#F5F0E8', border: '4px solid #111', boxShadow: '4px 4px 0 0 #111',
+                padding: '14px 10px', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(0,0,0,0.45)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  {key.replace('_', ' ')}
+                </div>
+                <div style={{ fontFamily: 'Bangers, cursive', fontSize: 40, color: '#1E1B4B', lineHeight: 1 }}>
+                  {judgment.votes[key] ?? '—'}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 2 }}>/10</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
