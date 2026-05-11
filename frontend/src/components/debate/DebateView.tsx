@@ -25,9 +25,16 @@ export default function DebateView({ topic, rounds, onBack }: DebateViewProps) {
     (async () => {
       setStatus('loading');
       try {
+        const provider = localStorage.getItem('llm_provider') || '';
+        const key = localStorage.getItem('llm_key') || '';
+        
         const res = await fetch(`${BACKEND}/debate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-LLM-Provider': provider,
+            'X-LLM-Key': key
+          },
           body: JSON.stringify({ topic, rounds }),
         });
         if (!res.ok) { const t = await res.text(); throw new Error(`Server error (${res.status}): ${t}`); }

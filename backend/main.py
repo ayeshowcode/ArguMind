@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 
@@ -47,7 +47,23 @@ def test_agent():
 
 
 @app.post("/debate", response_model=DebateTranscript)
-async def debate(body: DebateTopic) -> DebateTranscript:
+async def debate(body: DebateTopic, request: Request) -> DebateTranscript:
+    provider = request.headers.get("X-LLM-Provider")
+    api_key = request.headers.get("X-LLM-Key")
+    
+    if provider and api_key:
+        os.environ["LLM_PROVIDER"] = provider
+        if provider == "openai":
+            os.environ["OPENAI_API_KEY"] = api_key
+        elif provider == "gemini":
+            os.environ["GEMINI_API_KEY"] = api_key
+        elif provider == "grok":
+            os.environ["GROK_API_KEY"] = api_key
+        elif provider == "groq":
+            os.environ["GROQ_API_KEY"] = api_key
+        elif provider == "openrouter":
+            os.environ["OPENROUTER_API_KEY"] = api_key
+
     from orchestrator.graph import run_debate
     try:
         final_state = run_debate(body.topic, body.rounds)

@@ -2,7 +2,7 @@
 
 import BrainIcon from './BrainIcon';
 
-export default function AppHeader({ onBack }: { onBack?: (() => void) | null }) {
+export default function AppHeader({ onBack, onOpenConfig }: { onBack?: (() => void) | null, onOpenConfig?: () => void }) {
   return (
     <header style={{
       position: 'sticky', top: 0, zIndex: 50,
@@ -30,6 +30,16 @@ export default function AppHeader({ onBack }: { onBack?: (() => void) | null }) 
             onMouseEnter={e => { e.currentTarget.style.background = '#06B6D4'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#111'; }}
           >← NEW DEBATE</button>
+        )}
+        {onOpenConfig && (
+          <button onClick={onOpenConfig} style={{
+            background: '#F5F0E8', color: '#111', border: '2px solid #111',
+            padding: '4px 12px', fontFamily: 'sans-serif', fontWeight: 700, fontSize: 13,
+            textTransform: 'uppercase', cursor: 'pointer',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#e5e0d8'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#F5F0E8'; }}
+          >⚙ CONFIG</button>
         )}
         <span style={{
           background: '#1E1B4B', color: '#06B6D4', border: '2px solid #111',
